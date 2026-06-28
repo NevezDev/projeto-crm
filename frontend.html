@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRM</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0F1117;
+      --surface:   #1A1D27;
+      --surface2:  #22263A;
+      --border:    #2C3050;
+      --primary:   #6C63FF;
+      --primary-glow: rgba(108,99,255,.25);
+      --green:     #2ECC71;
+      --red:       #E74C3C;
+      --yellow:    #F39C12;
+      --text:      #F1F1F5;
+      --muted:     #8B90A8;
+      --radius:    10px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ── AUTH ─────────────────────────────── */
+    #auth-screen {
+      width: 100%; display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 60% 40%, rgba(108,99,255,.12) 0%, transparent 60%),
+                  var(--bg);
+    }
+    .auth-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    }
+    .auth-logo { text-align: center; margin-bottom: 28px; }
+    .auth-logo span { font-size: 28px; font-weight: 700; letter-spacing: -.5px; }
+    .auth-logo span em { color: var(--primary); font-style: normal; }
+    .auth-tabs { display: flex; gap: 4px; background: var(--surface2); border-radius: 8px; padding: 4px; margin-bottom: 28px; }
+    .auth-tab {
+      flex: 1; text-align: center; padding: 8px; border-radius: 6px;
+      cursor: pointer; font-size: 14px; font-weight: 500; color: var(--muted);
+      transition: all .2s;
+    }
+    .auth-tab.active { background: var(--primary); color: #fff; }
+    .auth-form { display: none; flex-direction: column; gap: 16px; }
+    .auth-form.active { display: flex; }
+    .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+    .field input {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 14px;
+      font-family: inherit; outline: none; transition: border .2s;
+    }
+    .field input:focus { border-color: var(--primary); }
+    .btn-primary {
+      background: var(--primary); color: #fff; border: none; border-radius: 8px;
+      padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer;
+      font-family: inherit; transition: opacity .2s; width: 100%;
+    }
+    .btn-primary:hover { opacity: .88; }
+    .auth-msg { font-size: 13px; color: var(--red); text-align: center; min-height: 18px; }
+
+    /* ── APP LAYOUT ───────────────────────── */
+    #app { display: none; width: 100%; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 230px; min-height: 100vh; background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0;
+    }
+    .sidebar-logo {
+      padding: 24px 20px 20px;
+      font-size: 20px; font-weight: 700; letter-spacing: -.3px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo em { color: var(--primary); font-style: normal; }
+    .sidebar-nav { flex: 1; padding: 16px 10px; display: flex; flex-direction: column; gap: 4px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px; border-radius: 8px;
+      cursor: pointer; font-size: 14px; font-weight: 500; color: var(--muted);
+      transition: all .18s;
+    }
+    .nav-item i { width: 18px; text-align: center; font-size: 15px; }
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active {
+      background: var(--primary-glow);
+      color: var(--primary);
+      box-shadow: inset 3px 0 0 var(--primary);
+    }
+    .nav-item.active i { filter: drop-shadow(0 0 6px var(--primary)); }
+    .sidebar-footer {
+      padding: 16px; border-top: 1px solid var(--border);
+      font-size: 13px; color: var(--muted);
+    }
+    .sidebar-user { display: flex; align-items: center; gap: 10px; }
+    .avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--primary); display: flex; align-items: center;
+      justify-content: center; font-weight: 700; font-size: 13px; color: #fff;
+      flex-shrink: 0;
+    }
+    .sidebar-user-info { flex: 1; overflow: hidden; }
+    .sidebar-user-name { font-weight: 600; color: var(--text); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .btn-logout { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; transition: color .2s; }
+    .btn-logout:hover { color: var(--red); }
+
+    /* Main area */
+    .main { margin-left: 230px; flex: 1; padding: 32px; min-height: 100vh; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .page-title { font-size: 22px; font-weight: 700; margin-bottom: 24px; }
+
+    /* Cards / Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px;
+    }
+    .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+    .stat-value { font-size: 28px; font-weight: 700; }
+    .stat-value.green { color: var(--green); }
+    .stat-value.purple { color: var(--primary); }
+
+    /* Table */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; margin-bottom: 24px;
+    }
+    .card-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-title { font-size: 15px; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left; padding: 12px 16px;
+      font-size: 11px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .5px;
+      border-bottom: 1px solid var(--border);
+    }
+    td { padding: 12px 16px; font-size: 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.025); }
+    .empty-row td { text-align: center; color: var(--muted); padding: 32px; }
+
+    /* Badges */
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 600;
+    }
+    .badge-lead    { background: rgba(108,99,255,.2); color: var(--primary); }
+    .badge-cliente { background: rgba(46,204,113,.2); color: var(--green); }
+    .badge-inativo { background: rgba(139,144,168,.15); color: var(--muted); }
+    .badge-pending   { background: rgba(243,156,18,.2); color: var(--yellow); }
+    .badge-done      { background: rgba(46,204,113,.2); color: var(--green); }
+    .badge-low       { background: rgba(46,204,113,.15); color: var(--green); }
+    .badge-medium    { background: rgba(243,156,18,.15); color: var(--yellow); }
+    .badge-high      { background: rgba(231,76,60,.15); color: var(--red); }
+
+    /* Buttons */
+    .btn-sm {
+      padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+      cursor: pointer; font-family: inherit; border: none; transition: opacity .2s;
+    }
+    .btn-sm:hover { opacity: .8; }
+    .btn-add { background: var(--primary); color: #fff; }
+    .btn-del { background: rgba(231,76,60,.15); color: var(--red); }
+    .btn-edit { background: var(--surface2); color: var(--text); }
+    .btn-done { background: rgba(46,204,113,.15); color: var(--green); }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.6);
+      display: none; align-items: center; justify-content: center; z-index: 100;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px; width: 100%; max-width: 480px;
+      box-shadow: 0 24px 60px rgba(0,0,0,.5);
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 20px; }
+    .modal form { display: flex; flex-direction: column; gap: 14px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
+    .btn-cancel { background: var(--surface2); color: var(--muted); border: none; border-radius: 8px; padding: 10px 18px; font-size: 13px; cursor: pointer; font-family: inherit; }
+    .btn-cancel:hover { color: var(--text); }
+    .modal select {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 14px;
+      font-family: inherit; outline: none;
+    }
+    .modal select:focus { border-color: var(--primary); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* Dashboard funnel */
+    .funnel-bar { margin-bottom: 10px; }
+    .funnel-label { font-size: 13px; color: var(--muted); margin-bottom: 4px; display: flex; justify-content: space-between; }
+    .funnel-track { height: 8px; background: var(--surface2); border-radius: 4px; }
+    .funnel-fill  { height: 8px; background: var(--primary); border-radius: 4px; transition: width .6s ease; }
+
+    /* Activities */
+    .activity-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-icon { width: 32px; height: 32px; border-radius: 50%; background: rgba(46,204,113,.15); display: flex; align-items: center; justify-content: center; color: var(--green); font-size: 13px; flex-shrink: 0; }
+    .activity-text { font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .activity-text strong { color: var(--text); }
+
+    /* Toast */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 18px; font-size: 13px; font-weight: 500;
+      opacity: 0; transform: translateY(8px); transition: all .3s;
+      z-index: 999; pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.success { border-color: var(--green); color: var(--green); }
+    #toast.error   { border-color: var(--red);   color: var(--red); }
+
+    /* Loading */
+    .loading { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }
+
+    /* Dashboard grid */
+    .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<!-- ══ AUTH ══════════════════════════════════════════════ -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo"><span>cr<em>m</em></span></div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="switchTab('login')">Entrar</div>
+      <div class="auth-tab" onclick="switchTab('register')">Criar conta</div>
+    </div>
+
+    <form class="auth-form active" id="form-login" onsubmit="doLogin(event)">
+      <div class="field"><label>E-mail</label><input type="email" id="login-email" required placeholder="seu@email.com" /></div>
+      <div class="field"><label>Senha</label><input type="password" id="login-pass" required placeholder="••••••••" /></div>
+      <button type="submit" class="btn-primary">Entrar</button>
+      <div class="auth-msg" id="login-msg"></div>
+    </form>
+
+    <form class="auth-form" id="form-register" onsubmit="doRegister(event)">
+      <div class="field"><label>Nome completo</label><input type="text" id="reg-name" required placeholder="João Silva" /></div>
+      <div class="field"><label>E-mail</label><input type="email" id="reg-email" required placeholder="seu@email.com" /></div>
+      <div class="field"><label>Senha</label><input type="password" id="reg-pass" required placeholder="••••••••" /></div>
+      <button type="submit" class="btn-primary">Criar conta</button>
+      <div class="auth-msg" id="reg-msg"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ APP ════════════════════════════════════════════════ -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">cr<em>m</em></div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="navigate('dashboard')"><i class="fa-solid fa-chart-pie"></i> Dashboard</div>
+      <div class="nav-item" onclick="navigate('contacts')"><i class="fa-solid fa-users"></i> Contatos</div>
+      <div class="nav-item" onclick="navigate('deals')"><i class="fa-solid fa-handshake"></i> Negócios</div>
+      <div class="nav-item" onclick="navigate('tasks')"><i class="fa-solid fa-list-check"></i> Tarefas</div>
+      <div class="nav-item" onclick="navigate('companies')"><i class="fa-solid fa-building"></i> Empresas</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="user-avatar">?</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="user-name">—</div>
+        </div>
+        <button class="btn-logout" onclick="doLogout()" title="Sair"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-title">Dashboard</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Contatos</div><div class="stat-value purple" id="d-contacts">—</div></div>
+        <div class="stat-card"><div class="stat-label">Negócios ativos</div><div class="stat-value" id="d-deals">—</div></div>
+        <div class="stat-card"><div class="stat-label">Receita no pipeline</div><div class="stat-value green" id="d-revenue">—</div></div>
+      </div>
+      <div class="dashboard-grid">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Funil de vendas</span></div>
+          <div style="padding:20px;" id="d-funnel"><div class="loading">Carregando...</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Atividades recentes</span></div>
+          <div style="padding:16px 20px;" id="d-activities"><div class="loading">Carregando...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTACTS -->
+    <div class="page" id="page-contacts">
+      <div class="page-title">Contatos</div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title" id="contacts-count">Contatos</span>
+          <button class="btn-sm btn-add" onclick="openModal('contact')"><i class="fa-solid fa-plus"></i> Novo contato</button>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Nome</th><th>E-mail</th><th>Empresa</th><th>Cargo</th><th>Status</th><th></th>
+          </tr></thead>
+          <tbody id="contacts-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DEALS -->
+    <div class="page" id="page-deals">
+      <div class="page-title">Negócios</div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title" id="deals-count">Negócios</span>
+          <button class="btn-sm btn-add" onclick="openModal('deal')"><i class="fa-solid fa-plus"></i> Novo negócio</button>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Título</th><th>Contato</th><th>Etapa</th><th>Valor</th><th>Fechamento</th><th>Prob.</th><th></th>
+          </tr></thead>
+          <tbody id="deals-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TASKS -->
+    <div class="page" id="page-tasks">
+      <div class="page-title">Tarefas</div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title" id="tasks-count">Tarefas</span>
+          <button class="btn-sm btn-add" onclick="openModal('task')"><i class="fa-solid fa-plus"></i> Nova tarefa</button>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Título</th><th>Relacionado a</th><th>Prioridade</th><th>Prazo</th><th>Status</th><th></th>
+          </tr></thead>
+          <tbody id="tasks-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- COMPANIES -->
+    <div class="page" id="page-companies">
+      <div class="page-title">Empresas</div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title" id="companies-count">Empresas</span>
+          <button class="btn-sm btn-add" onclick="openModal('company')"><i class="fa-solid fa-plus"></i> Nova empresa</button>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Nome</th><th>Setor</th><th>Contatos</th><th>Negócios</th><th>Receita total</th><th></th>
+          </tr></thead>
+          <tbody id="companies-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══ MODALS ═════════════════════════════════════════════ -->
+
+<!-- Contact Modal -->
+<div class="modal-overlay" id="modal-contact">
+  <div class="modal">
+    <div class="modal-title" id="modal-contact-title">Novo contato</div>
+    <form onsubmit="submitContact(event)">
+      <div class="form-row">
+        <div class="field"><label>Nome *</label><input type="text" id="c-name" required /></div>
+        <div class="field"><label>E-mail *</label><input type="email" id="c-email" required /></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Telefone</label><input type="text" id="c-phone" /></div>
+        <div class="field"><label>Cargo</label><input type="text" id="c-role" /></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Empresa</label>
+          <select id="c-company">
+            <option value="">— Sem empresa —</option>
+          </select>
+        </div>
+        <div class="field"><label>Status</label>
+          <select id="c-status">
+            <option value="lead">Lead</option>
+            <option value="cliente">Cliente</option>
+            <option value="inativo">Inativo</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Notas</label><input type="text" id="c-notes" /></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="closeModal('contact')">Cancelar</button>
+        <button type="submit" class="btn-primary" style="width:auto;padding:10px 24px;">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Deal Modal -->
+<div class="modal-overlay" id="modal-deal">
+  <div class="modal">
+    <div class="modal-title" id="modal-deal-title">Novo negócio</div>
+    <form onsubmit="submitDeal(event)">
+      <div class="field"><label>Título *</label><input type="text" id="d-title" required /></div>
+      <div class="form-row">
+        <div class="field"><label>Contato *</label>
+          <select id="d-contact" required>
+            <option value="">Selecione um contato</option>
+          </select>
+        </div>
+        <div class="field"><label>Etapa</label>
+          <select id="d-stage">
+            <option value="Prospecção">Prospecção</option>
+            <option value="Qualificação">Qualificação</option>
+            <option value="Proposta">Proposta</option>
+            <option value="Negociação">Negociação</option>
+            <option value="Fechado">Fechado</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Valor (R$) *</label><input type="number" id="d-value" required min="0" step="0.01" /></div>
+        <div class="field"><label>Probabilidade (%)</label><input type="number" id="d-prob" min="0" max="100" value="50" /></div>
+      </div>
+      <div class="field"><label>Data de fechamento</label><input type="date" id="d-date" /></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="closeModal('deal')">Cancelar</button>
+        <button type="submit" class="btn-primary" style="width:auto;padding:10px 24px;">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Task Modal -->
+<div class="modal-overlay" id="modal-task">
+  <div class="modal">
+    <div class="modal-title">Nova tarefa</div>
+    <form onsubmit="submitTask(event)">
+      <div class="field"><label>Título *</label><input type="text" id="t-title" required /></div>
+      <div class="form-row">
+        <div class="field"><label>Relacionado a</label><input type="text" id="t-related" /></div>
+        <div class="field"><label>Prioridade</label>
+          <select id="t-priority">
+            <option value="low">Baixa</option>
+            <option value="medium" selected>Média</option>
+            <option value="high">Alta</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Prazo</label><input type="date" id="t-due" /></div>
+        <div class="field"><label>Status</label>
+          <select id="t-status">
+            <option value="pending">Pendente</option>
+            <option value="done">Concluída</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Notas</label><input type="text" id="t-notes" /></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="closeModal('task')">Cancelar</button>
+        <button type="submit" class="btn-primary" style="width:auto;padding:10px 24px;">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Company Modal -->
+<div class="modal-overlay" id="modal-company">
+  <div class="modal">
+    <div class="modal-title">Nova empresa</div>
+    <form onsubmit="submitCompany(event)">
+      <div class="form-row">
+        <div class="field"><label>Nome *</label><input type="text" id="co-name" required /></div>
+        <div class="field"><label>Setor *</label><input type="text" id="co-sector" required placeholder="Ex: Tecnologia" /></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="closeModal('company')">Cancelar</button>
+        <button type="submit" class="btn-primary" style="width:auto;padding:10px 24px;">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const apiFromQuery = new URLSearchParams(window.location.search).get('api');
+  if (apiFromQuery) localStorage.setItem('crm_api_url', apiFromQuery);
+  const API = (window.CRM_API_URL || apiFromQuery || localStorage.getItem('crm_api_url') || 'http://localhost:8000').replace(/\/$/, '');
+  let token = localStorage.getItem('crm_token') || '';
+  let currentUser = JSON.parse(localStorage.getItem('crm_user') || 'null');
+  let editingContact = null;
+  let editingDeal    = null;
+  let editingTask    = null;
+  let contactsList = [];
+  let companiesList = [];
+  let dealsList = [];
+  let tasksList = [];
+
+  // ── helpers ───────────────────────────────────────────
+  const h = (url, opts={}) => fetch(API + url, {
+    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
+    ...opts
+  });
+
+  function toast(msg, type='success') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'show ' + type;
+    setTimeout(() => el.className = '', 2800);
+  }
+
+  function fmt(v) {
+    return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+  }
+
+  function fmtDate(s) {
+    if (!s) return '—';
+    const [y,m,d] = (s+'').split('-');
+    return d ? `${d}/${m}/${y}` : s;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    })[char]);
+  }
+
+  // ── Auth ──────────────────────────────────────────────
+  function switchTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0) === (tab==='login')));
+    document.getElementById('form-login').classList.toggle('active', tab==='login');
+    document.getElementById('form-register').classList.toggle('active', tab==='register');
+  }
+
+  async function doLogin(e) {
+    e.preventDefault();
+    const msg = document.getElementById('login-msg');
+    msg.textContent = '';
+    try {
+      const r = await h('/api/auth/login', { method:'POST', body: JSON.stringify({ email: document.getElementById('login-email').value, password: document.getElementById('login-pass').value }) });
+      const d = await r.json();
+      if (!r.ok) { msg.textContent = d.detail || 'Erro ao entrar.'; return; }
+      token = d.access_token;
+      currentUser = d.user;
+      localStorage.setItem('crm_token', token);
+      localStorage.setItem('crm_user', JSON.stringify(currentUser));
+      showApp();
+    } catch { msg.textContent = 'Não foi possível conectar ao servidor.'; }
+  }
+
+  async function doRegister(e) {
+    e.preventDefault();
+    const msg = document.getElementById('reg-msg');
+    msg.textContent = '';
+    try {
+      const r = await h('/api/auth/register', { method:'POST', body: JSON.stringify({ full_name: document.getElementById('reg-name').value, email: document.getElementById('reg-email').value, password: document.getElementById('reg-pass').value }) });
+      const d = await r.json();
+      if (!r.ok) { msg.textContent = d.detail || 'Erro ao criar conta.'; return; }
+      toast('Conta criada! Faça login.');
+      switchTab('login');
+    } catch { msg.textContent = 'Não foi possível conectar ao servidor.'; }
+  }
+
+  function doLogout() {
+    token = ''; currentUser = null;
+    localStorage.removeItem('crm_token');
+    localStorage.removeItem('crm_user');
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('auth-screen').style.display = 'flex';
+  }
+
+  async function showApp() {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('user-name').textContent = currentUser?.name || currentUser?.email || '?';
+    document.getElementById('user-avatar').textContent = (currentUser?.name || '?')[0].toUpperCase();
+    // Load initial data for dropdowns
+    await loadContacts();
+    await loadCompanies();
+    navigate('dashboard');
+  }
+
+  // ── Navigation ────────────────────────────────────────
+  const pages = ['dashboard','contacts','deals','tasks','companies'];
+
+  function navigate(page) {
+    pages.forEach(p => {
+      document.getElementById('page-'+p).classList.toggle('active', p===page);
+    });
+    document.querySelectorAll('.nav-item').forEach(el => {
+      el.classList.toggle('active', el.textContent.trim().toLowerCase().includes(page) ||
+        (page==='dashboard' && el.textContent.includes('Dashboard')));
+    });
+    loadPage(page);
+  }
+
+  function loadPage(page) {
+    if (page === 'dashboard')  loadDashboard();
+    if (page === 'contacts')   loadContacts();
+    if (page === 'deals')      loadDeals();
+    if (page === 'tasks')      loadTasks();
+    if (page === 'companies')  loadCompanies();
+  }
+
+  // ── Dashboard ─────────────────────────────────────────
+  async function loadDashboard() {
+    try {
+      const r = await h('/api/reports/summary');
+      const d = await r.json();
+      document.getElementById('d-contacts').textContent = d.contacts_total ?? 0;
+      document.getElementById('d-deals').textContent    = d.deals_active ?? 0;
+      document.getElementById('d-revenue').textContent  = fmt(d.pipeline_revenue ?? 0);
+
+      // Funnel
+      const funnel = d.funnel || {};
+      const total  = Object.values(funnel).reduce((a,b)=>a+b,0) || 1;
+      const stages = ['Prospecção','Qualificação','Proposta','Negociação','Fechado'];
+      const el = document.getElementById('d-funnel');
+      el.innerHTML = stages.map(s => {
+        const cnt = funnel[s] || 0;
+        const pct = Math.round(cnt/total*100);
+        return `<div class="funnel-bar">
+          <div class="funnel-label"><span>${s}</span><span>${cnt}</span></div>
+          <div class="funnel-track"><div class="funnel-fill" style="width:${pct}%"></div></div>
+        </div>`;
+      }).join('');
+
+      // Activities
+      const acts = d.activities || [];
+      const ael = document.getElementById('d-activities');
+      if (!acts.length) { ael.innerHTML = '<div class="loading">Nenhuma atividade.</div>'; return; }
+      ael.innerHTML = acts.map(a => `
+        <div class="activity-item">
+          <div class="activity-icon"><i class="fa-solid ${/^fa-[a-z0-9-]+$/.test(a.icon || '') ? a.icon : 'fa-circle-info'}"></i></div>
+          <div class="activity-text">${escapeHtml(a.text)}</div>
+        </div>`).join('');
+    } catch { toast('Erro ao carregar dashboard.','error'); }
+  }
+
+  // ── Contacts ──────────────────────────────────────────
+  async function loadContacts() {
+    const body = document.getElementById('contacts-body');
+    body.innerHTML = '<tr><td colspan="6" class="loading">Carregando...</td></tr>';
+    try {
+      const r = await h('/api/contacts');
+      const data = await r.json();
+      contactsList = data;
+      document.getElementById('contacts-count').textContent = `Contatos (${data.length})`;
+      if (!data.length) { body.innerHTML = '<tr class="empty-row"><td colspan="6">Nenhum contato cadastrado.</td></tr>'; return; }
+      body.innerHTML = data.map(c => `
+        <tr>
+          <td><strong>${escapeHtml(c.name)}</strong></td>
+          <td>${escapeHtml(c.email || '—')}</td>
+          <td>${escapeHtml(c.company || '—')}</td>
+          <td>${escapeHtml(c.role || '—')}</td>
+          <td><span class="badge badge-${['lead','active','inactive'].includes(c.status) ? c.status : 'lead'}">${escapeHtml(c.status || '—')}</span></td>
+          <td style="display:flex;gap:6px;justify-content:flex-end;">
+            <button class="btn-sm btn-edit" onclick="editContactById(${Number(c.id)})"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn-sm btn-del"  onclick="deleteContact(${c.id})"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        </tr>`).join('');
+    } catch { toast('Erro ao carregar contatos.','error'); }
+  }
+
+  function openModal(type) {
+    editingContact = null;
+    editingDeal = null;
+    editingTask = null;
+    document.getElementById('modal-contact-title').textContent = 'Novo contato';
+    document.getElementById('modal-deal-title').textContent    = 'Novo negócio';
+    document.querySelector('#modal-task .modal-title').textContent = 'Nova tarefa';
+    
+    // Reset fields
+    ['c-name','c-email','c-phone','c-role','c-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('c-status').value = 'lead';
+    ['d-title','d-value','d-date'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('d-stage').value = 'Prospecção';
+    document.getElementById('d-prob').value  = '50';
+    ['t-title','t-related','t-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('t-priority').value = 'medium';
+    document.getElementById('t-status').value = 'pending';
+    document.getElementById('t-due').value = '';
+    
+    // Populate Company dropdown for contact
+    const companySelect = document.getElementById('c-company');
+    companySelect.innerHTML = '<option value="">— Sem empresa —</option>' + 
+      companiesList.map(co => `<option value="${escapeHtml(co.name)}">${escapeHtml(co.name)}</option>`).join('');
+    
+    // Populate Contact dropdown for deal
+    const contactSelect = document.getElementById('d-contact');
+    contactSelect.innerHTML = '<option value="">Selecione um contato</option>' + 
+      contactsList.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('');
+    
+    document.getElementById('modal-'+type).classList.add('open');
+  }
+
+  function closeModal(type) { document.getElementById('modal-'+type).classList.remove('open'); }
+
+  function editContact(c) {
+    editingContact = c;
+    document.getElementById('modal-contact-title').textContent = 'Editar contato';
+    
+    // Populate company dropdown first
+    const companySelect = document.getElementById('c-company');
+    companySelect.innerHTML = '<option value="">— Sem empresa —</option>' + 
+      companiesList.map(co => `<option value="${escapeHtml(co.name)}">${escapeHtml(co.name)}</option>`).join('');
+    
+    document.getElementById('c-name').value    = c.name || '';
+    document.getElementById('c-email').value   = c.email || '';
+    document.getElementById('c-phone').value   = c.phone || '';
+    document.getElementById('c-role').value    = c.role || '';
+    document.getElementById('c-company').value = c.company || '';
+    document.getElementById('c-status').value  = c.status || 'lead';
+    document.getElementById('c-notes').value   = c.notes || '';
+    document.getElementById('modal-contact').classList.add('open');
+  }
+
+  function editContactById(id) {
+    const contact = contactsList.find(item => item.id === id);
+    if (contact) editContact(contact);
+  }
+
+  async function submitContact(e) {
+    e.preventDefault();
+    const payload = {
+      name:    document.getElementById('c-name').value,
+      email:   document.getElementById('c-email').value,
+      phone:   document.getElementById('c-phone').value,
+      role:    document.getElementById('c-role').value,
+      company: document.getElementById('c-company').value,
+      status:  document.getElementById('c-status').value,
+      notes:   document.getElementById('c-notes').value,
+    };
+    try {
+      const url    = editingContact ? `/api/contacts/${editingContact.id}` : '/api/contacts';
+      const method = editingContact ? 'PUT' : 'POST';
+      const r = await h(url, { method, body: JSON.stringify(payload) });
+      if (!r.ok) { toast('Erro ao salvar contato.','error'); return; }
+      closeModal('contact');
+      toast(editingContact ? 'Contato atualizado!' : 'Contato criado!');
+      loadContacts();
+    } catch { toast('Erro de conexão.','error'); }
+  }
+
+  async function deleteContact(id) {
+    if (!confirm('Remover este contato?')) return;
+    await h(`/api/contacts/${id}`, { method:'DELETE' });
+    toast('Contato removido.');
+    loadContacts();
+  }
+
+  // ── Deals ─────────────────────────────────────────────
+  async function loadDeals() {
+    const body = document.getElementById('deals-body');
+    body.innerHTML = '<tr><td colspan="7" class="loading">Carregando...</td></tr>';
+    try {
+      const r = await h('/api/deals');
+      const data = await r.json();
+      dealsList = data;
+      document.getElementById('deals-count').textContent = `Negócios (${data.length})`;
+      if (!data.length) { body.innerHTML = '<tr class="empty-row"><td colspan="7">Nenhum negócio cadastrado.</td></tr>'; return; }
+      body.innerHTML = data.map(d => `
+        <tr>
+          <td><strong>${escapeHtml(d.title)}</strong></td>
+          <td>${escapeHtml(d.contact_name || '—')}</td>
+          <td>${escapeHtml(d.stage || '—')}</td>
+          <td>${fmt(d.value)}</td>
+          <td>${fmtDate(d.close_date)}</td>
+          <td>${d.probability}%</td>
+          <td style="display:flex;gap:6px;justify-content:flex-end;">
+            <button class="btn-sm btn-edit" onclick="editDealById(${Number(d.id)})"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn-sm btn-del"  onclick="deleteDeal(${d.id})"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        </tr>`).join('');
+    } catch { toast('Erro ao carregar negócios.','error'); }
+  }
+
+  function editDeal(d) {
+    editingDeal = d;
+    document.getElementById('modal-deal-title').textContent = 'Editar negócio';
+    
+    // Populate contact dropdown first
+    const contactSelect = document.getElementById('d-contact');
+    contactSelect.innerHTML = '<option value="">Selecione um contato</option>' + 
+      contactsList.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('');
+    
+    document.getElementById('d-title').value   = d.title || '';
+    document.getElementById('d-contact').value = d.contact_name || '';
+    document.getElementById('d-stage').value   = d.stage || 'Prospecção';
+    document.getElementById('d-value').value   = d.value || '';
+    document.getElementById('d-prob').value    = d.probability || 50;
+    document.getElementById('d-date').value    = d.close_date || '';
+    document.getElementById('modal-deal').classList.add('open');
+  }
+
+  function editDealById(id) {
+    const deal = dealsList.find(item => item.id === id);
+    if (deal) editDeal(deal);
+  }
+
+  async function submitDeal(e) {
+    e.preventDefault();
+    const payload = {
+      title:        document.getElementById('d-title').value,
+      contact_name: document.getElementById('d-contact').value,
+      stage:        document.getElementById('d-stage').value,
+      value:        parseFloat(document.getElementById('d-value').value),
+      probability:  parseInt(document.getElementById('d-prob').value),
+      close_date:   document.getElementById('d-date').value || '2025-12-31',
+    };
+    try {
+      const url    = editingDeal ? `/api/deals/${editingDeal.id}` : '/api/deals';
+      const method = editingDeal ? 'PUT' : 'POST';
+      const r = await h(url, { method, body: JSON.stringify(payload) });
+      if (!r.ok) { toast('Erro ao salvar negócio.','error'); return; }
+      closeModal('deal');
+      toast(editingDeal ? 'Negócio atualizado!' : 'Negócio criado!');
+      loadDeals();
+    } catch { toast('Erro de conexão.','error'); }
+  }
+
+  async function deleteDeal(id) {
+    if (!confirm('Remover este negócio?')) return;
+    await h(`/api/deals/${id}`, { method:'DELETE' });
+    toast('Negócio removido.');
+    loadDeals();
+  }
+
+  // ── Tasks ─────────────────────────────────────────────
+  async function loadTasks() {
+    const body = document.getElementById('tasks-body');
+    body.innerHTML = '<tr><td colspan="6" class="loading">Carregando...</td></tr>';
+    try {
+      const r = await h('/api/tasks');
+      const data = await r.json();
+      tasksList = data;
+      document.getElementById('tasks-count').textContent = `Tarefas (${data.length})`;
+      if (!data.length) { body.innerHTML = '<tr class="empty-row"><td colspan="6">Nenhuma tarefa cadastrada.</td></tr>'; return; }
+      body.innerHTML = data.map(t => `
+        <tr style="${t.status==='done'?'opacity:.55':''}">
+          <td><strong>${escapeHtml(t.title)}</strong></td>
+          <td>${escapeHtml(t.related || '—')}</td>
+          <td><span class="badge badge-${['low','medium','high'].includes(t.priority) ? t.priority : 'medium'}">${t.priority==='low'?'Baixa':t.priority==='medium'?'Média':'Alta'}</span></td>
+          <td>${fmtDate(t.due_date)}</td>
+          <td><span class="badge badge-${t.status === 'done' ? 'done' : 'pending'}">${t.status==='done'?'Concluída':'Pendente'}</span></td>
+          <td style="display:flex;gap:6px;justify-content:flex-end;">
+            <button class="btn-sm btn-edit" onclick="editTaskById(${Number(t.id)})"><i class="fa-solid fa-pen"></i></button>
+            ${t.status!=='done'?`<button class="btn-sm btn-done" onclick="doneTask(${t.id})"><i class="fa-solid fa-check"></i></button>`:''}
+            <button class="btn-sm btn-del" onclick="deleteTask(${t.id})"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        </tr>`).join('');
+    } catch { toast('Erro ao carregar tarefas.','error'); }
+  }
+
+  function editTask(t) {
+    editingTask = t;
+    document.querySelector('#modal-task .modal-title').textContent = 'Editar tarefa';
+    document.getElementById('t-title').value = t.title || '';
+    document.getElementById('t-related').value = t.related || '';
+    document.getElementById('t-priority').value = t.priority || 'medium';
+    document.getElementById('t-due').value = t.due_date || '';
+    document.getElementById('t-status').value = t.status || 'pending';
+    document.getElementById('t-notes').value = t.notes || '';
+    document.getElementById('modal-task').classList.add('open');
+  }
+
+  function editTaskById(id) {
+    const task = tasksList.find(item => item.id === id);
+    if (task) editTask(task);
+  }
+
+  async function submitTask(e) {
+    e.preventDefault();
+    const payload = {
+      title:    document.getElementById('t-title').value,
+      related:  document.getElementById('t-related').value,
+      priority: document.getElementById('t-priority').value,
+      due_date: document.getElementById('t-due').value || null,
+      status:   document.getElementById('t-status').value,
+      notes:    document.getElementById('t-notes').value,
+    };
+    try {
+      const url    = editingTask ? `/api/tasks/${editingTask.id}` : '/api/tasks';
+      const method = editingTask ? 'PUT' : 'POST';
+      const r = await h(url, { method, body: JSON.stringify(payload) });
+      if (!r.ok) { toast('Erro ao salvar tarefa.','error'); return; }
+      closeModal('task');
+      toast(editingTask ? 'Tarefa atualizada!' : 'Tarefa criada!');
+      loadTasks();
+    } catch { toast('Erro de conexão.','error'); }
+  }
+
+  async function doneTask(id) {
+    const r = await h(`/api/tasks/${id}`, {
+      method:'PATCH',
+      body: JSON.stringify({ status: 'done' }) 
+    });
+    if (!r.ok) { toast('Erro ao concluir tarefa.','error'); return; }
+    toast('Tarefa concluída!');
+    loadTasks();
+  }
+
+  async function deleteTask(id) {
+    if (!confirm('Remover esta tarefa?')) return;
+    await h(`/api/tasks/${id}`, { method:'DELETE' });
+    toast('Tarefa removida.');
+    loadTasks();
+  }
+
+  // ── Companies ─────────────────────────────────────────
+  async function loadCompanies() {
+    const body = document.getElementById('companies-body');
+    body.innerHTML = '<tr><td colspan="6" class="loading">Carregando...</td></tr>';
+    try {
+      const r = await h('/api/companies');
+      const data = await r.json();
+      companiesList = data;
+      document.getElementById('companies-count').textContent = `Empresas (${data.length})`;
+      if (!data.length) { body.innerHTML = '<tr class="empty-row"><td colspan="6">Nenhuma empresa cadastrada.</td></tr>'; return; }
+      body.innerHTML = data.map(co => `
+        <tr>
+          <td><strong>${escapeHtml(co.name)}</strong></td>
+          <td>${escapeHtml(co.sector || '—')}</td>
+          <td>${co.contacts_count}</td>
+          <td>${co.deals_count}</td>
+          <td>${fmt(co.total_revenue)}</td>
+          <td style="text-align:right;">
+            <button class="btn-sm btn-del" onclick="deleteCompany(${co.id})"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        </tr>`).join('');
+    } catch { toast('Erro ao carregar empresas.','error'); }
+  }
+
+  async function submitCompany(e) {
+    e.preventDefault();
+    const payload = {
+      name:           document.getElementById('co-name').value,
+      sector:         document.getElementById('co-sector').value,
+      contacts_count: 0,
+      deals_count:    0,
+      total_revenue:  0,
+    };
+    try {
+      const r = await h('/api/companies', { method:'POST', body: JSON.stringify(payload) });
+      if (!r.ok) { const d = await r.json(); toast(d.detail || 'Erro ao criar empresa.','error'); return; }
+      closeModal('company');
+      toast('Empresa criada!');
+      loadCompanies();
+    } catch { toast('Erro de conexão.','error'); }
+  }
+
+  async function deleteCompany(id) {
+    if (!confirm('Remover esta empresa?')) return;
+    await h(`/api/companies/${id}`, { method:'DELETE' });
+    toast('Empresa removida.');
+    loadCompanies();
+  }
+
+  // Fechar modal clicando fora
+  document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+  });
+
+  // ── Init ──────────────────────────────────────────────
+  if (token && currentUser) showApp();
+</script>
+</body>
+</html>
