@@ -1,93 +1,117 @@
 # Guia CRM
 
-CRM full stack para organizar contatos, empresas, oportunidades de venda, tarefas e indicadores de pipeline. O projeto combina uma API REST em FastAPI com uma interface responsiva em HTML, CSS e JavaScript puro.
+CRM full stack desenvolvido para organizar contatos, empresas, oportunidades de venda, tarefas e indicadores de pipeline.
+
+O backend e toda a lógica da aplicação foram desenvolvidos por mim utilizando Python e FastAPI. A interface frontend foi criada com o auxílio do Claude, ferramenta de inteligência artificial da Anthropic.
 
 ## Funcionalidades
 
 - Cadastro e login com autenticação JWT.
 - CRUD de contatos, empresas, negócios e tarefas.
-- Atualização parcial e conclusão rápida de tarefas.
-- Dashboard com contatos, oportunidades, receita e funil por etapa.
-- Isolamento dos dados de cada usuário.
-- Validação dos payloads com Pydantic.
-- Documentação automática da API via Swagger em `/docs`.
+- Atualização e conclusão rápida de tarefas.
+- Dashboard com contatos, oportunidades e receita em pipeline.
+- Funil de vendas dividido por etapas.
+- Isolamento dos dados por usuário.
+- Validação dos dados com Pydantic.
+- Documentação automática da API com Swagger.
 
 ## Tecnologias
+
+### Backend
 
 - Python
 - FastAPI
 - SQLAlchemy
+- Pydantic
 - JWT com `python-jose`
-- Passlib/bcrypt para hash de senhas
-- SQLite para execução local rápida
-- PostgreSQL opcional via `DATABASE_URL`
-- HTML, CSS e JavaScript puro no frontend
+- Passlib e bcrypt
+- SQLite
+- PostgreSQL opcional
 
-## Como rodar localmente
+### Frontend
 
-1. Crie e ative um ambiente virtual:
+- HTML
+- CSS
+- JavaScript
+- Font Awesome
+- Desenvolvimento realizado com auxílio do Claude
+
+## Como executar localmente
+
+1. Clone o repositório:
+
+```bash
+git clone https://github.com/NevezDev/projeto-crm.git
+cd projeto-crm
+```
+
+2. Crie e ative um ambiente virtual:
 
 ```bash
 python -m venv venv
 venv\Scripts\activate
 ```
 
-2. Instale as dependências:
+3. Instale as dependências:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Configure as variáveis de ambiente:
+4. Crie o arquivo de configuração:
 
 ```bash
 copy .env.example .env
 ```
 
-4. Inicie a API:
+5. Inicie a API:
 
 ```bash
 uvicorn main:app --reload
 ```
 
-5. Abra `frontend.html` no navegador.
+6. Abra o arquivo `frontend.html` no navegador.
 
-```text
-frontend.html
-```
-
-A API ficará disponível em `http://127.0.0.1:8000`, e a documentação interativa em `http://127.0.0.1:8000/docs`.
+A API estará disponível em `http://127.0.0.1:8000` e a documentação Swagger em `http://127.0.0.1:8000/docs`.
 
 ## Testes
 
-Os testes cobrem validação da autenticação, isolamento entre usuários, unicidade de empresas por usuário e atualização parcial de tarefas:
+Para executar os testes automatizados:
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
+Os testes verificam:
+
+- Validação do cadastro.
+- Autenticação de usuários.
+- Isolamento dos dados.
+- Unicidade de empresas por usuário.
+- Atualização parcial de tarefas.
+
 ## Configuração do frontend
 
-Por padrão, o frontend usa `http://localhost:8000`. Em uma publicação estática, informe a API pelo parâmetro `api`:
+Por padrão, o frontend utiliza a API disponível em `http://localhost:8000`.
+
+Em uma publicação externa, a URL pode ser configurada pelo parâmetro `api`:
 
 ```text
-https://seu-usuario.github.io/projeto-crm/?api=https://sua-api.example.com
+https://seu-site.com/?api=https://sua-api.com
 ```
-
-O endereço fica salvo no navegador. Também é possível defini-lo antes do script por `window.CRM_API_URL`.
 
 ## Banco de dados
 
-Por padrão, o projeto usa SQLite local:
+Por padrão, o projeto utiliza SQLite:
 
 ```env
 DATABASE_URL=sqlite:///./crm.db
 ```
 
-Para usar PostgreSQL, altere a variavel no `.env`:
+Para utilizar PostgreSQL:
 
 ```env
-DATABASE_URL=postgresql://usuario:senha@localhost:5432/nome_do_banco
+DATABASE_URL=postgresql://usuario:senha@localhost:5432/banco
 ```
 
 ## Estrutura
@@ -106,15 +130,12 @@ DATABASE_URL=postgresql://usuario:senha@localhost:5432/nome_do_banco
 └── .env.example
 ```
 
-## Decisões técnicas
+## Desenvolvimento e uso de inteligência artificial
 
-- API separada em models, schemas e rotas.
-- Senhas armazenadas apenas como hash bcrypt.
-- Segredos e conexão com banco definidos por variáveis de ambiente.
-- Consultas sempre filtradas pelo usuário autenticado.
-- Conteúdo dinâmico escapado no frontend para reduzir risco de XSS.
-- SQLite no desenvolvimento e suporte a PostgreSQL em produção.
+O backend, incluindo arquitetura, regras de negócio, autenticação, banco de dados, endpoints e testes, foi desenvolvido por mim.
+
+O frontend foi desenvolvido com o auxílio do Claude, utilizado como ferramenta de apoio na criação da interface, dos estilos e dos componentes visuais. A integração entre frontend e backend, assim como os ajustes e as validações finais, fizeram parte do desenvolvimento do projeto.
 
 ## Autor
 
-Desenvolvido por [Sérgio Neves](https://github.com/NevezDev) como projeto de portfólio para demonstrar fundamentos de desenvolvimento full stack com Python.
+Desenvolvido por [Sérgio Neves](https://github.com/NevezDev) como projeto de portfólio para demonstrar conhecimentos em desenvolvimento backend com Python e FastAPI.
