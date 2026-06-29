@@ -32,7 +32,8 @@ def resumo(db: Session = Depends(get_db), current_user: User = Depends(auth_util
         activities.append({
             "icon": "fa-user-plus",
             "cls": "green",
-            "text": f"<strong>{contact.name}</strong> foi adicionado como novo contato",
+            "contact_name": contact.name,
+            "action": "foi adicionado como novo contato",
             "time": "Recentemente",
         })
 

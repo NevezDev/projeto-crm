@@ -663,7 +663,7 @@
       ael.innerHTML = acts.map(a => `
         <div class="activity-item">
           <div class="activity-icon"><i class="fa-solid ${/^fa-[a-z0-9-]+$/.test(a.icon || '') ? a.icon : 'fa-circle-info'}"></i></div>
-          <div class="activity-text">${escapeHtml(a.text)}</div>
+          <div class="activity-text"><strong>${escapeHtml(a.contact_name)}</strong> ${escapeHtml(a.action)}</div>
         </div>`).join('');
     } catch { toast('Erro ao carregar dashboard.','error'); }
   }
